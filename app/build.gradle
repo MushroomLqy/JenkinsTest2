@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        applicationId "com.andli.jenkins"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0.5"
+    }
+    signingConfigs {//签名的配置
+        release {
+            storeFile file("epointkey.jks")
+            storePassword '123456'
+            keyAlias 'alad'
+            keyPassword '123456'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false     //是否启动混淆
+            zipAlignEnabled false   //是否启动zipAlign
+            shrinkResources false   //是否移除无用的resource文件
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release//打包命令行：gradlew assembleRelease
+            applicationVariants.all { variant ->
+                if (variant.buildType.name.equals('release')) {
+                    variant.outputs.each { output ->
+                        def outputFile = output.outputFile
+                        if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                            def fileName = "${releaseTime()}_com.andli.myproject_${defaultConfig.versionName}.apk"
+                            output.outputFile = new File("/Users/mac/Downloads/APK", fileName)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    lintOptions {//设置编译的lint开关，程序在buid的时候，会执行lint检查，有任何的错误或者警告提示，都会终止构建
+        abortOnError false
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.3.0'
+}
+
+def releaseTime() {
+    return new Date().format("yyyyMMdd HH:mm:ss", TimeZone.getTimeZone("Asia/Chongqing"))
+}
